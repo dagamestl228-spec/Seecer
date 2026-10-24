@@ -1,57 +1,81 @@
 
-from tavily import TavilyClient
+# ============================================
+# MY AI - INTERNET SEARCH
+# Без API-ключа
+# ============================================
+
+import os
+
+try:
+    from ddgs import DDGS
+except ImportError:
+    print("Встановлюю бібліотеку пошуку...")
+    os.system("python -m pip install -U ddgs")
+    from ddgs import DDGS
+
+
+def search_internet(question):
+    try:
+        results = DDGS().text(
+            question,
+            max_results=5
+        )
+
+        answers = []
+
+        for item in results:
+            text = item.get("body", "").strip()
+
+            if text and text not in answers:
+                answers.append(text)
+
+        if not answers:
+            return "Інформацію не знайдено. Спробуй інший запит."
+
+        return "\n\n".join(
+            f"{i}. {text}"
+            for i, text in enumerate(answers, 1)
+        )
+
+    except Exception as error:
+        return (
+            "Не вдалося виконати пошук.\n"
+            "Перевір інтернет або спробуй пізніше.\n"
+            f"Деталі: {error}"
+        )
+
 
 def main():
-    print("=" * 45)
-    print("       MY AI - INTERNET SEARCH")
-    print("=" * 45)
-    print("Пиши запитання. Для виходу введи: вихід")
+    os.system("cls" if os.name == "nt" else "clear")
 
-    try:
-        search = TavilyClient()
+    print("=" * 50)
+    print("          MY AI - INTERNET SEARCH")
+    print("=" * 50)
+    print("Пошук інформації без API-ключа.")
+    print("Посилання та назви сайтів не показуються.")
+    print("Для виходу введи: вихід")
+    print("=" * 50)
 
-        while True:
+    while True:
+        try:
             question = input("\nТи: ").strip()
 
             if question.lower() in ("вихід", "exit", "quit"):
-                print("ШІ: До зустрічі!")
+                print("\nШІ: До зустрічі!")
                 break
 
             if not question:
                 continue
 
-            print("\nШІ: Шукаю інформацію в інтернеті...")
+            print("\nШІ шукає інформацію...\n")
+            result = search_internet(question)
+            print("ВІДПОВІДЬ ШІ:\n")
+            print(result)
+            print("\n" + "-" * 50)
 
-            try:
-                response = search.search(
-                    query=question,
-                    max_results=5,
-                    search_depth="basic"
-                )
-
-                results = response.get("results", [])
-
-                if not results:
-                    print("ШІ: Нічого не знайдено.")
-                    continue
-
-                print("\nШІ: Ось що вдалося знайти:\n")
-
-                for i, item in enumerate(results, 1):
-                    title = item.get("title", "Без назви")
-                    content = item.get("content", "Опис відсутній")
-                    url = item.get("url", "")
-
-                    print(f"{i}. {title}")
-                    print(content)
-                    print(f"Джерело: {url}")
-                    print("-" * 45)
-
-            except Exception as error:
-                print(f"Помилка пошуку: {error}")
-
-    except Exception as error:
-        print(f"Не вдалося запустити пошук: {error}")
+        except KeyboardInterrupt:
+            print("\nРоботу завершено.")
+            break
 
 
 if __name__ == "__main__":
